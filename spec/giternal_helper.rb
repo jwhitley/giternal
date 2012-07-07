@@ -30,13 +30,14 @@ class GiternalHelper
     `#{giternal_base}/bin/giternal #{args.join(' ')}`
   end
 
-  def self.create_repo(repo_name)
+  def self.create_repo(repo_name, branch=nil)
     Dir.chdir(tmp_path) do
       FileUtils.mkdir_p "externals/#{repo_name}"
       `cd externals/#{repo_name} && git init`
     end
     add_content repo_name
     add_to_config_file repo_name
+    create_branch repo_name, branch if branch
   end
 
   def self.add_to_config_file(repo_name)
@@ -53,6 +54,12 @@ class GiternalHelper
     Dir.chdir(tmp_path + "/externals/#{repo_name}") do
       `echo #{content} >> #{content} && git add #{content}`
       `git commit #{content} -m "added content to #{content}"`
+    end
+  end
+
+  def self.create_branch(repo_name, new_branch)
+    Dir.chdir(tmp_path + "/externals/#{repo_name}") do
+      `git checkout -q master -b #{new_branch}`
     end
   end
 
