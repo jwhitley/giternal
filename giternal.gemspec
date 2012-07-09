@@ -4,14 +4,14 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{giternal}
-  s.version = "0.1.1"
+  s.name = "giternal"
+  s.version = "0.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Pat Maddox"]
-  s.date = %q{2011-06-24}
-  s.description = %q{Giternal provides dead-simple management of external git dependencies. It only stores a small bit of metadata, letting you actively develop in any of the repos. Come deploy time, you can easily freeze freeze all the dependencies to particular versions}
-  s.email = %q{pat.maddox@gmail.com}
+  s.authors = ["John Whitley", "Pat Maddox"]
+  s.date = "2012-07-09"
+  s.description = "Giternal provides dead-simple management of external git dependencies. It only stores a small bit of metadata, letting you actively develop in any of the repos. Come deploy time, you can easily freeze freeze all the dependencies to particular versions"
+  s.email = "john@luminous-studios.com"
   s.executables = ["giternal"]
   s.extra_rdoc_files = [
     "LICENSE",
@@ -43,11 +43,11 @@ Gem::Specification.new do |s|
     "spec/spec_helper.rb",
     "test_trackers.rb"
   ]
-  s.homepage = %q{http://github.com/patmaddox/giternal}
-  s.post_install_message = %q{** IMPORTANT - Please see UPGRADING.rdoc for important changes **}
+  s.homepage = "http://github.com/jwhitley/giternal"
+  s.post_install_message = "** IMPORTANT - Please see UPGRADING.rdoc for important changes **"
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.7.2}
-  s.summary = %q{Non-sucky git externals}
+  s.rubygems_version = "1.8.11"
+  s.summary = "Non-sucky git externals"
 
   if s.respond_to? :specification_version then
     s.specification_version = 3

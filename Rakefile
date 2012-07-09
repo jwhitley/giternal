@@ -7,9 +7,9 @@ begin
     gem.name = "#{ENV["GEM_PREFIX"]}giternal"
     gem.summary = %Q{Non-sucky git externals}
     gem.description = %Q{Giternal provides dead-simple management of external git dependencies. It only stores a small bit of metadata, letting you actively develop in any of the repos. Come deploy time, you can easily freeze freeze all the dependencies to particular versions}
-    gem.email = "pat.maddox@gmail.com"
-    gem.homepage = "http://github.com/patmaddox/giternal"
-    gem.authors = ["Pat Maddox"]
+    gem.email = "john@luminous-studios.com"
+    gem.homepage = "http://github.com/jwhitley/giternal"
+    gem.authors = ["John Whitley", "Pat Maddox"]
     gem.add_development_dependency "rspec", "~> 2"
     gem.add_development_dependency "cucumber", "~> 1"
     gem.post_install_message = "** IMPORTANT - Please see UPGRADING.rdoc for important changes **"
