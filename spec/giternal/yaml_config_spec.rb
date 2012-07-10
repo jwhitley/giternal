@@ -32,5 +32,21 @@ foo:
       Repository.should_receive(:new).with('base_dir', "foo", "git://at/foo", "path/to/foo", nil).and_return :a_repo
       config.each_repo {|r| r.should == :a_repo}
     end
+
+    it "should process ERB directives in the config" do
+      yaml_config = <<-EOT
+<% github_user='xyzzy' %>
+rspec:
+  repo: https://github.com/<%= github_user %>/rspec
+  path: vendor/plugins
+foo:
+  repo: git://at/foo
+  path: path/to/foo
+      EOT
+      config = YamlConfig.new('base_dir', yaml_config)
+      Repository.should_receive(:new).with('base_dir', "rspec", "https://github.com/xyzzy/rspec", "vendor/plugins", nil).and_return :a_repo
+      Repository.should_receive(:new).with('base_dir', "foo", "git://at/foo", "path/to/foo", nil).and_return :a_repo
+      config.each_repo {|r| r.should == :a_repo}
+    end
   end
 end
