@@ -2,8 +2,9 @@ require 'yaml'
 
 module Giternal
   class YamlConfig
-    def initialize(base_dir, yaml_string)
+    def initialize(base_dir, yaml_template)
       @base_dir = base_dir
+      yaml_string = ERB.new(yaml_template).result
       @config_hash = YAML.load yaml_string
     end
 
