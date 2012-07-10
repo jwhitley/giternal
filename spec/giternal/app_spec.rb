@@ -49,16 +49,6 @@ module Giternal
         @mock_repo.should_receive(:update)
         @app.update
       end
-
-      it "should freeze each of the repositories" do
-        @mock_repo.should_receive(:freezify)
-        @app.freezify
-      end
-
-      it "should unfreeze each of the repositories" do
-        @mock_repo.should_receive(:unfreezify)
-        @app.unfreezify
-      end
     end
   end
 end
