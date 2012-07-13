@@ -35,17 +35,3 @@ Feature: Checking out and updating externals
     When I update the external 'second_external'
     Then 'first_external' should not be up to date
     And 'second_external' should be up to date
-
-  Scenario: One repo frozen, one repo unfrozen, and all updated
-    Given an external repository named 'first_external'
-    And an external repository named 'second_external'
-    And the externals are up to date
-    And the externals are frozen
-    And content is added to 'first_external'
-    And content is added to 'second_external'
-    Then 'first_external' should not be up to date
-    And 'second_external' should not be up to date
-    When I unfreeze the external 'second_external'
-    And I update the externals
-    Then 'first_external' should not be up to date
-    And 'second_external' should be up to date
