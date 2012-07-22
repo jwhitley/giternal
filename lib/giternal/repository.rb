@@ -1,3 +1,5 @@
+require 'giternal'
+
 require 'fileutils'
 
 module Giternal

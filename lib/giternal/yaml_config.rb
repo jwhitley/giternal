@@ -1,3 +1,5 @@
+require 'giternal'
+
 require 'yaml'
 require 'erb'
 

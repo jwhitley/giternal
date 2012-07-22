@@ -1,3 +1,5 @@
+require 'giternal'
+
 module Giternal
   class App
     def initialize(base_dir)
