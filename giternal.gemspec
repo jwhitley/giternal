@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
   s.post_install_message = "** IMPORTANT - Please see UPGRADING.rdoc for important changes **"
   s.require_paths = ["lib"]
 
+  s.add_dependency("ruby-git", ["~> 0.2"])
   s.add_development_dependency("rake", ["~> 0.9"])
   s.add_development_dependency("rspec", ["~> 2"])
   s.add_development_dependency("cucumber", ["~> 1"])
