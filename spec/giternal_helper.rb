@@ -1,3 +1,5 @@
+require 'fileutils'
+
 class GiternalHelper
   @@giternal_base ||= File.expand_path(File.dirname(__FILE__) + '/..')
 
