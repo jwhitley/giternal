@@ -43,32 +43,6 @@ module Giternal
       true
     end
 
-    def freezify
-      return true if frozen? || !checked_out?
-
-      Dir.chdir(repo_path) do
-        `tar czf .git.frozen.tgz .git`
-         FileUtils.rm_r('.git')
-      end
-      `cd #{@base_dir} && git add -f #{rel_repo_path}`
-      true
-    end
-
-    def unfreezify
-      return true unless frozen?
-
-      Dir.chdir(repo_path) do
-        `tar xzf .git.frozen.tgz`
-        FileUtils.rm('.git.frozen.tgz')
-      end
-      `cd #{@base_dir} && git rm -r --cached #{rel_repo_path}`
-      true
-    end
-
-    def frozen?
-      File.exist?(repo_path + '/.git.frozen.tgz')
-    end
-
     def checked_out?
       File.exist?(repo_path)
     end
