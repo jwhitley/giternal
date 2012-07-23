@@ -17,9 +17,10 @@ Gem::Specification.new do |s|
     "LICENSE",
     "README.rdoc"
   ]
-  git_test_files, git_files = `git ls-files`.split("\n").partition { |f| f =~ %r{(^test|^spec)/} }
-  s.test_files = git_test_files
-  s.files = git_files
+
+  s.files         = `git ls-files`.split("\n")
+  s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+  s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
 
   s.post_install_message = "** IMPORTANT - Please see UPGRADING.rdoc for important changes **"
   s.require_paths = ["lib"]
