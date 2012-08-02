@@ -7,6 +7,39 @@ module Giternal
       @mock_config = stub("config").as_null_object
     end
 
+    describe "should support action introspection" do
+      before(:each) do
+        App::Actions.send(:define_method, :test_method) { nil }
+      end
+
+      after(:each) do
+        App::Actions.send(:remove_method, :test_method)
+      end
+
+      it "should know its actions" do
+        App.actions.should include(:test_method)
+      end
+
+      it "should know its action names" do
+        App.action_names.should include("test_method")
+      end
+
+      it "should run valid commands" do
+        @app.should_receive(:test_method)
+        @app.run 'test_method'
+      end
+
+      it "should not run unknown commands" do
+        @app.should_not_receive(:wombat)
+        expect { @app.run 'wombat' }.to raise_error(Giternal::Error::UnknownCommand)
+      end
+
+      it "should not run invalid commands" do
+        @app.should_not_receive(:config)
+        expect { @app.run 'config' }.to raise_error(Giternal::Error::UnknownCommand)
+      end
+    end
+
     describe "loading the config file" do
       before(:each) do
         File.stub!(:file?).and_return true

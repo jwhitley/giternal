@@ -1,3 +1,4 @@
+coverage/
 spec/test_repos
 pkg
 features/tmp

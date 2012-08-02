@@ -1,3 +1,5 @@
+require 'fileutils'
+
 class GiternalHelper
   @@giternal_base ||= File.expand_path(File.dirname(__FILE__) + '/..')
 
@@ -79,18 +81,6 @@ class GiternalHelper
   def self.update_externals(*args)
     Dir.chdir(tmp_path + '/main_repo') do
       GiternalHelper.run('update', *args)
-    end
-  end
-
-  def self.freeze_externals(*args)
-    Dir.chdir(tmp_path + '/main_repo') do
-      GiternalHelper.run("freeze", *args)
-    end
-  end
-
-  def self.unfreeze_externals(*args)
-    Dir.chdir(tmp_path + '/main_repo') do
-      GiternalHelper.run("unfreeze", *args)
     end
   end
 
