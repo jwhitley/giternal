@@ -25,7 +25,6 @@ module Giternal
     def update
       git_ignore_self
 
-      return true if frozen?
       FileUtils.mkdir_p checkout_path unless File.exist?(checkout_path)
       if checked_out?
         if !File.exist?(repo_path + '/.git')
