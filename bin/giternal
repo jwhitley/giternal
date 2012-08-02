@@ -1,19 +1,18 @@
 #!/usr/bin/env ruby
-require "rubygems"
-if File.exist?(File.dirname(__FILE__) + '/../lib/giternal.rb')
-  $:.unshift(File.dirname(__FILE__) + '/../lib')
-end
 require 'giternal'
 
 action = ARGV[0]
-available_actions = %w(update freeze unfreeze)
-unless available_actions.include?(action)
-  puts "Usage: giternal (#{available_actions.join(':')})"
-  puts ""
-  puts File.read(File.dirname(__FILE__) + '/../README.rdoc')
-  exit 1
-end
+actions = Giternal::App.action_names
 
 Giternal::Repository.verbose = true
-app = Giternal::App.new(FileUtils.pwd)
-app.run(*ARGV)
+begin
+  app = Giternal::App.new(FileUtils.pwd)
+  app.run(*ARGV)
+rescue Giternal::Error::UnknownCommand => e
+  puts "Unknown command: '#{e.message}'\n"
+  puts "Usage: giternal (#{actions.join(':')})"
+rescue Giternal::Error::ReportableError => e
+  puts "Usage: giternal (#{actions.join(':')})\n"
+  $stderr.puts e.message
+  exit 1
+end
