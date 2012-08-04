@@ -7,6 +7,7 @@ module Giternal
     return @logger if @logger
 
     @logger = (Log4r::Logger['giternal'] || Log4r::Logger.new('giternal'))
+    @logger.level = Log4r::WARN
     @logger.outputters = Log4r::Outputter.stdout
     @logger
   end
