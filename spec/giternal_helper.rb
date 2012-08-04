@@ -53,8 +53,8 @@ class GiternalHelper
   end
 
   def self.add_content(repo_name, content=repo_name)
-    without_git_env do
-      Dir.chdir(tmp_path + "/externals/#{repo_name}") do
+    Dir.chdir(tmp_path + "/externals/#{repo_name}") do
+      without_git_env do
         `echo #{content} >> #{content}`
         `git add #{content}`
         `git commit #{content} -m "added content to #{content}"`
@@ -64,7 +64,9 @@ class GiternalHelper
 
   def self.create_branch(repo_name, new_branch)
     Dir.chdir(tmp_path + "/externals/#{repo_name}") do
-      `git checkout -q master -b #{new_branch}`
+      without_git_env do
+        `git checkout -q master -b #{new_branch}`
+      end
     end
   end
 

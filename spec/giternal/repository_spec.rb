@@ -105,6 +105,24 @@ module Giternal
           @repository.update
         }.should raise_error(Giternal::Error::NotGitRepo)
       end
+
+      it "should switch to a new upstream branch" do
+        @repository.update
+
+        GiternalHelper.create_branch 'foo', 'second_branch'
+        GiternalHelper.add_content 'foo', 'branchfile'
+        @repository = Repository.new(GiternalHelper.base_project_dir, "foo",
+                                     GiternalHelper.external_path('foo'),
+                                     'dependencies', 'second_branch')
+        @repository.update
+
+        Dir.chdir(GiternalHelper.checked_out_path('foo')) do
+          `git symbolic-ref -q HEAD | sed -e 's|^refs/heads/||'`.strip.should == 'second_branch'
+        end
+        File.file?(GiternalHelper.checked_out_path('foo/branchfile')).should be_true
+        File.read(GiternalHelper.checked_out_path('foo/branchfile')).strip.
+          should == 'branchfile'
+      end
     end
 
     context "with default branch" do
@@ -136,7 +154,8 @@ module Giternal
         Dir.chdir(GiternalHelper.checked_out_path('foo')) do
           `git symbolic-ref -q HEAD | sed -e 's|^refs/heads/||'`.strip.should == 'test_branch'
         end
-      end 
+      end
+
     end
   end
 end
