@@ -54,14 +54,19 @@ class GiternalHelper
 
   def self.add_content(repo_name, content=repo_name)
     Dir.chdir(tmp_path + "/externals/#{repo_name}") do
-      `echo #{content} >> #{content} && git add #{content}`
-      `git commit #{content} -m "added content to #{content}"`
+      without_git_env do
+        `echo #{content} >> #{content}`
+        `git add #{content}`
+        `git commit #{content} -m "added content to #{content}"`
+      end
     end
   end
 
   def self.create_branch(repo_name, new_branch)
     Dir.chdir(tmp_path + "/externals/#{repo_name}") do
-      `git checkout -q master -b #{new_branch}`
+      without_git_env do
+        `git checkout -q master -b #{new_branch}`
+      end
     end
   end
 
@@ -76,6 +81,19 @@ class GiternalHelper
   def self.clean!
     FileUtils.rm_rf tmp_path
     %w(GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE).each {|var| ENV[var] = nil }
+  end
+
+  def self.without_git_env
+    gitenv = {}
+    %w(GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE).each do |var|
+      gitenv[var] = ENV[var]
+      ENV[var] = nil
+    end
+    begin
+      yield
+    ensure
+      gitenv.keys.each { |var| ENV[var] = gitenv[var] }
+    end
   end
 
   def self.update_externals(*args)
