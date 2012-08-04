@@ -26,6 +26,8 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency("git", ["~> 1.2"])
+  s.add_dependency("log4r", ["~> 1.1"])
+  s.add_development_dependency("pry")
   s.add_development_dependency("rake", ["~> 0.9"])
   s.add_development_dependency("rspec", ["~> 2"])
   s.add_development_dependency("cucumber", ["~> 1"])

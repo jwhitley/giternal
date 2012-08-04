@@ -2,6 +2,10 @@ require 'giternal'
 
 module Giternal
   class App
+
+    def self.usage
+      "Usage: giternal <command>\n"
+    end
     
     def self.actions
       App::Actions.instance_methods(false)

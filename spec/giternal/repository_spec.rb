@@ -12,36 +12,62 @@ module Giternal
           should == 'foo'
       end
 
-      it "should be ignored from git" do
+      it "should be ignored from git (in subdir)" do
         @repository.update
         Dir.chdir(GiternalHelper.base_project_dir) do
           # TODO: What I really want is to say it shouldn't include 'foo'
           `git status`.should_not include('dependencies')
-          File.read('.gitignore').should == "dependencies/foo\n"
+          File.read('.gitignore').should == "/dependencies/foo\n"
+        end
+      end
+
+      it "should be ignored from git (in root dir)" do
+        GiternalHelper.create_repo 'bar'
+        repo = Repository.new(GiternalHelper.base_project_dir, "bar",
+                              GiternalHelper.external_path('bar'),
+                              nil)
+        repo.update
+        Dir.chdir(GiternalHelper.base_project_dir) do
+          # TODO: What I really want is to say it shouldn't include 'foo'
+          `git status --porcelain`.should_not include('bar')
+          File.read('.gitignore').should == "/bar\n"
         end
       end
 
       it "should only add itself to .gitignore if it's not already there" do
         Dir.chdir(GiternalHelper.base_project_dir) do
-          File.open('.gitignore', 'w') {|f| f << "dependencies/foo\n" }
+          File.open('.gitignore', 'w') {|f| f << "/dependencies/foo\n" }
         end
 
         @repository.update
 
         Dir.chdir(GiternalHelper.base_project_dir) do
-          File.read('.gitignore').should == "dependencies/foo\n"
+          File.read('.gitignore').should == "/dependencies/foo\n"
         end
       end
 
       it "adds a newline if it needs to" do
         Dir.chdir(GiternalHelper.base_project_dir) do
-          File.open('.gitignore', 'w') {|f| f << "something/else" }
+          File.open('.gitignore', 'w') {|f| f << "/something/else" }
         end
 
         @repository.update
 
         Dir.chdir(GiternalHelper.base_project_dir) do
-          File.read('.gitignore').should == "something/else\ndependencies/foo\n"
+          File.read('.gitignore').should == "/something/else\n/dependencies/foo\n"
+        end
+      end
+
+      it "should not add extraneous newlines" do
+        Dir.chdir(GiternalHelper.base_project_dir) do
+          File.open('.gitignore', 'w') {|f| f << "/something/else\n" }
+        end
+        
+        @repository.update
+
+        Dir.chdir(GiternalHelper.base_project_dir) do
+          contents = File.read('.gitignore')
+          contents.should == "/something/else\n/dependencies/foo\n"
         end
       end
 
@@ -70,7 +96,7 @@ module Giternal
         FileUtils.mkdir_p(GiternalHelper.checked_out_path('foo'))
         lambda {
           @repository.update
-        }.should raise_error(/Directory 'foo' exists but is not a git repository/)
+        }.should raise_error(Giternal::Error::NotGitRepo)
       end
     end
 
