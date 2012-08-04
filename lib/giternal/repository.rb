@@ -1,6 +1,8 @@
 require 'giternal'
-
 require 'fileutils'
+require 'pathname'
+
+require 'git'
 
 module Giternal
   class Repository
@@ -9,56 +11,65 @@ module Giternal
     end
     attr_accessor :verbose
 
+    attr_reader :checkout_path
+
     def initialize(base_dir, name, repo_url, rel_path, branch=nil)
-      @base_dir = base_dir
+      @base_dir = Pathname.new(base_dir).expand_path
       @name = name
       @repo_url = repo_url
-      @rel_path = rel_path
+      @rel_path = rel_path || ''
+
       if branch != nil
         @branch = branch
       else
         @branch = "master"
       end
+
+      @checkout_path = (@base_dir + @rel_path).expand_path
+      @repo_path = @checkout_path + @name
       @verbose = self.class.verbose
+    end
+
+    def git
+      begin
+        @git ||= Git.open(@repo_path, :log => Giternal.logger)
+      rescue ArgumentError => e
+        dir = e.backtrace.first
+        if dir =~ /\.git$/
+          raise Giternal::Error::NotGitRepo, dir
+        else
+          raise Giternal::Error::NotCheckedOut, dir
+        end
+      end
     end
 
     def update
       git_ignore_self
 
-      return true if frozen?
-      FileUtils.mkdir_p checkout_path unless File.exist?(checkout_path)
+      @checkout_path.mkpath unless @checkout_path.directory?
+
       if checked_out?
-        if !File.exist?(repo_path + '/.git')
-          raise "Directory '#{@name}' exists but is not a git repository"
-        else
-          current_branch = (`cd #{repo_path} && git branch`).split[1]
-          if current_branch != @branch
-            `cd #{repo_path} && git checkout #{@branch}`
+        update_output do
+          git.remote.fetch
+          if git.branch.name != @branch
+            git.checkout(@branch)
           end
-          update_output { `cd #{repo_path} && git pull 2>&1` }
+          git.remote.merge(@branch)
         end
       else
-        update_output { `cd #{checkout_path} && git clone #{@repo_url} #{@name} -b #{@branch}` }
+        update_output do
+          @git = Git.clone(@repo_url, @name, :path => @checkout_path.to_s)
+          @git.branch(@branch).checkout
+        end
       end
       true
     end
 
     def checked_out?
-      File.exist?(repo_path)
+      !!(@repo_path.directory? && git)
     end
 
     private
-    def checkout_path
-      File.expand_path(File.join(@base_dir, @rel_path))
-    end
-
-    def repo_path
-      File.expand_path(checkout_path + '/' + @name)
-    end
-
-    def rel_repo_path
-      @rel_path + '/' + @name
-    end
 
     def update_output(&block)
       puts "Updating #{@name}" if verbose
@@ -67,16 +78,22 @@ module Giternal
     end
 
     def git_ignore_self
+      if @rel_path.empty?
+        ignore_path = "/#{@name}"
+      else
+        ignore_path = "/#{@rel_path}/#{@name}"
+      end
+
       Dir.chdir(@base_dir) do
         contents = File.read('.gitignore') if File.exist?('.gitignore')
 
-        unless contents.to_s.include?(rel_repo_path)
+        unless contents.to_s.include?(ignore_path)
           File.open('.gitignore', 'w') do |file|
             if contents
               file << contents
-              file << "\n" unless contents[-1] == 10 # ascii code for \n
+              file << "\n" unless contents[-1] == "\n"
             end
-            file << rel_repo_path << "\n"
+            file << ignore_path << "\n"
           end
         end
       end

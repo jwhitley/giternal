@@ -2,17 +2,15 @@
 require 'giternal'
 
 action = ARGV[0]
-actions = Giternal::App.action_names
 
 Giternal::Repository.verbose = true
 begin
   app = Giternal::App.new(FileUtils.pwd)
   app.run(*ARGV)
-rescue Giternal::Error::UnknownCommand => e
-  puts "Unknown command: '#{e.message}'\n"
-  puts "Usage: giternal (#{actions.join(':')})"
+rescue Giternal::Error::UsageError => e
+  puts "#{e.format}\n\n#{Giternal::App.usage}"
+  exit 1
 rescue Giternal::Error::ReportableError => e
-  puts "Usage: giternal (#{actions.join(':')})\n"
-  $stderr.puts e.message
+  puts e.format
   exit 1
 end
