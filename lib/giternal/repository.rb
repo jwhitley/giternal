@@ -52,7 +52,7 @@ module Giternal
         update_output do
           git.remote.fetch
           if git.branch.name != @branch
-            git.branch(@branch).checkout
+            git.checkout(@branch)
           end
           git.remote.merge(@branch)
         end
