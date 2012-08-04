@@ -92,6 +92,13 @@ module Giternal
           should == 'newfile'
       end
 
+      it "should raise an error if the directory does not exist" do
+        FileUtils.mkdir_p(GiternalHelper.checked_out_path(''))
+        lambda {
+          @repository.git
+        }.should raise_error(Giternal::Error::NotCheckedOut)
+      end
+
       it "should raise an error if the directory exists but there's no .git dir" do
         FileUtils.mkdir_p(GiternalHelper.checked_out_path('foo'))
         lambda {
