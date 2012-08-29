@@ -42,6 +42,18 @@ class GiternalHelper
     create_branch repo_name, branch if branch
   end
 
+  def self.clone_bare_repo(repo_name)
+    Dir.chdir(tmp_path+"/externals") do
+      `git clone -q --bare #{repo_name} #{repo_name}.git`
+    end
+  end
+
+  def self.push_to_bare_repo(repo_name)
+    Dir.chdir(tmp_path+"/externals/#{repo_name}") do
+      `git clone -q --bare #{repo_name} #{repo_name}.git`
+    end
+  end
+
   def self.add_to_config_file(repo_name)
     config_dir = tmp_path + '/main_repo/config'
     FileUtils.mkdir(config_dir) unless File.directory?(config_dir)
@@ -68,6 +80,18 @@ class GiternalHelper
         `git checkout -q master -b #{new_branch}`
       end
     end
+  end
+
+  def self.checkout_branch(repo_name, new_branch)
+    Dir.chdir(tmp_path + "/externals/#{repo_name}") do
+      without_git_env do
+        `git checkout -q #{new_branch}`
+      end
+    end
+  end
+
+  def self.external_url(repo_name)
+    "file://#{File.expand_path(tmp_path + "/externals/#{repo_name}.git")}"
   end
 
   def self.external_path(repo_name)
