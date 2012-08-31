@@ -4,14 +4,16 @@ class GiternalHelper
   @@giternal_base ||= File.expand_path(File.dirname(__FILE__) + '/..')
 
   def self.create_main_repo
-    FileUtils.mkdir_p tmp_path
-    Dir.chdir(tmp_path) do
-      FileUtils.mkdir "main_repo"
-      Dir.chdir('main_repo') do
-        `git init`
-        `echo 'first content' > starter_repo`
-        `git add starter_repo`
-        `git commit -m "starter repo"`
+    without_git_env do
+      FileUtils.mkdir_p tmp_path
+      Dir.chdir(tmp_path) do
+        FileUtils.mkdir "main_repo"
+        Dir.chdir('main_repo') do
+          `git init`
+          `echo 'first content' > starter_repo`
+          `git add starter_repo`
+          `git commit -m "starter repo"`
+        end
       end
     end
   end
@@ -33,13 +35,43 @@ class GiternalHelper
   end
 
   def self.create_repo(repo_name, branch=nil)
-    Dir.chdir(tmp_path) do
-      FileUtils.mkdir_p "externals/#{repo_name}"
-      `cd externals/#{repo_name} && git init`
+    without_git_env do
+      Dir.chdir(tmp_path) do
+        FileUtils.mkdir_p "externals/#{repo_name}"
+        `cd externals/#{repo_name} && git init`
+      end
+      add_content repo_name
+      add_to_config_file repo_name
+      create_branch repo_name, branch if branch
     end
-    add_content repo_name
-    add_to_config_file repo_name
-    create_branch repo_name, branch if branch
+  end
+
+  def self.clone_bare_repo(repo_name)
+    without_git_env do
+      Dir.chdir(tmp_path+"/externals") do
+        `git clone -q --bare #{repo_name} #{repo_name}.git`
+      end
+    end
+  end
+
+  def self.push_to_bare_repo(repo_name)
+    without_git_env do
+      self.in_repo repo_name do
+        remotes = `git remote`.split("\n")
+        if remotes.include? 'origin'
+          `git push -q`
+        else
+          `git remote add origin #{GiternalHelper.external_url repo_name}`
+          `git push -q -u origin HEAD:"$(git symbolic-ref -q HEAD | sed -e 's|^refs/heads/||')"`
+        end
+      end
+    end
+  end
+
+  def self.in_repo(repo_name)
+    Dir.chdir(tmp_path + "/externals/#{repo_name}") do
+      yield
+    end
   end
 
   def self.add_to_config_file(repo_name)
@@ -53,8 +85,8 @@ class GiternalHelper
   end
 
   def self.add_content(repo_name, content=repo_name)
-    Dir.chdir(tmp_path + "/externals/#{repo_name}") do
-      without_git_env do
+    without_git_env do
+      in_repo repo_name do
         `echo #{content} >> #{content}`
         `git add #{content}`
         `git commit #{content} -m "added content to #{content}"`
@@ -63,11 +95,23 @@ class GiternalHelper
   end
 
   def self.create_branch(repo_name, new_branch)
-    Dir.chdir(tmp_path + "/externals/#{repo_name}") do
-      without_git_env do
+    without_git_env do
+      in_repo repo_name do
         `git checkout -q master -b #{new_branch}`
       end
     end
+  end
+
+  def self.checkout_branch(repo_name, new_branch)
+    without_git_env do
+      in_repo repo_name do
+        `git checkout -q #{new_branch}`
+      end
+    end
+  end
+
+  def self.external_url(repo_name)
+    "file://#{external_path(repo_name)}.git"
   end
 
   def self.external_path(repo_name)
@@ -83,7 +127,32 @@ class GiternalHelper
     %w(GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE).each {|var| ENV[var] = nil }
   end
 
+  def self.update_externals(*args)
+    Dir.chdir(tmp_path + '/main_repo') do
+      GiternalHelper.run('update', *args)
+    end
+  end
+
+  def self.repo_contents(path)
+    without_git_env do
+      Dir.chdir(path) do
+        contents = `git cat-file -p HEAD`
+        unless contents.include?('tree') && contents.include?('author')
+          raise "something is wrong with the repo, output doesn't contain expected git elements:\n\n #{contents}"
+        end
+        contents
+      end
+    end
+  end
+
+  def self.add_external_to_ignore(repo_name)
+    Dir.chdir(tmp_path + '/main_repo') do
+      `echo 'dependencies/#{repo_name}' >> .gitignore`
+    end
+  end
+
   def self.without_git_env
+    # Without any git environment variables
     gitenv = {}
     %w(GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE).each do |var|
       gitenv[var] = ENV[var]
@@ -95,26 +164,6 @@ class GiternalHelper
       gitenv.keys.each { |var| ENV[var] = gitenv[var] }
     end
   end
-
-  def self.update_externals(*args)
-    Dir.chdir(tmp_path + '/main_repo') do
-      GiternalHelper.run('update', *args)
-    end
-  end
-
-  def self.repo_contents(path)
-    Dir.chdir(path) do
-      contents = `git cat-file -p HEAD`
-      unless contents.include?('tree') && contents.include?('author')
-        raise "something is wrong with the repo, output doesn't contain expected git elements:\n\n #{contents}"
-      end
-      contents
-    end
-  end
-
-  def self.add_external_to_ignore(repo_name)
-    Dir.chdir(tmp_path + '/main_repo') do
-      `echo 'dependencies/#{repo_name}' >> .gitignore`
-    end
-  end
 end
+
+
