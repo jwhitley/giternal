@@ -174,6 +174,18 @@ module Giternal
         File.read(GiternalHelper.checked_out_path('foo/test_branch_file')).strip.should == 'test_branch_file'
       end
 
+      it "should check out the master branch" do
+        # An empty branch in the config will produce 'nil' to the branch
+        # parameter
+        @repository.update
+        @repository = Repository.new(GiternalHelper.base_project_dir, "foo",
+                                     GiternalHelper.external_url('foo'),
+                                     'dependencies', nil)
+        @repository.update
+        Dir.chdir(GiternalHelper.checked_out_path('foo')) do
+          `git symbolic-ref -q HEAD | sed -e 's|^refs/heads/||'`.strip.should == 'master'
+        end
+      end
     end
   end
 end
