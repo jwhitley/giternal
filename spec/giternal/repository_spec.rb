@@ -23,8 +23,9 @@ module Giternal
 
       it "should be ignored from git (in root dir)" do
         GiternalHelper.create_repo 'bar'
+        GiternalHelper.clone_bare_repo 'bar'
         repo = Repository.new(GiternalHelper.base_project_dir, "bar",
-                              GiternalHelper.external_path('bar'),
+                              GiternalHelper.external_url('bar'),
                               nil)
         repo.update
         Dir.chdir(GiternalHelper.base_project_dir) do
@@ -86,6 +87,7 @@ module Giternal
       it "should update the repo when it's already been checked out" do
         @repository.update
         GiternalHelper.add_content 'foo', 'newfile'
+        GiternalHelper.push_to_bare_repo 'foo'
         @repository.update
         File.file?(GiternalHelper.checked_out_path('foo/newfile')).should be_true
         File.read(GiternalHelper.checked_out_path('foo/newfile')).strip.
@@ -111,8 +113,9 @@ module Giternal
 
         GiternalHelper.create_branch 'foo', 'second_branch'
         GiternalHelper.add_content 'foo', 'branchfile'
+        GiternalHelper.push_to_bare_repo 'foo'
         @repository = Repository.new(GiternalHelper.base_project_dir, "foo",
-                                     GiternalHelper.external_path('foo'),
+                                     GiternalHelper.external_url('foo'),
                                      'dependencies', 'second_branch')
         @repository.update
 
@@ -129,9 +132,14 @@ module Giternal
       before(:each) do
         GiternalHelper.create_main_repo
         GiternalHelper.create_repo 'foo'
+        GiternalHelper.clone_bare_repo 'foo'
         @repository = Repository.new(GiternalHelper.base_project_dir, "foo",
-                                     GiternalHelper.external_path('foo'),
+                                     GiternalHelper.external_url('foo'),
                                      'dependencies')
+      end
+
+      after(:each) do
+        GiternalHelper.clean!
       end
 
       include_examples "core_workflow"
@@ -142,11 +150,19 @@ module Giternal
         GiternalHelper.create_main_repo
         GiternalHelper.create_repo 'foo'
         GiternalHelper.create_branch 'foo', 'test_branch'
+        GiternalHelper.add_content 'foo', 'test_branch_file'
+        GiternalHelper.checkout_branch 'foo', 'master'
+        GiternalHelper.clone_bare_repo 'foo'
+        GiternalHelper.checkout_branch 'foo', 'test_branch'
         @repository = Repository.new(GiternalHelper.base_project_dir, "foo",
-                                     GiternalHelper.external_path('foo'),
+                                     GiternalHelper.external_url('foo'),
                                      'dependencies', 'test_branch')
       end
       
+      after(:each) do
+        GiternalHelper.clean!
+      end
+
       include_examples "core_workflow"
 
       it "should check out the specified branch" do
@@ -154,6 +170,8 @@ module Giternal
         Dir.chdir(GiternalHelper.checked_out_path('foo')) do
           `git symbolic-ref -q HEAD | sed -e 's|^refs/heads/||'`.strip.should == 'test_branch'
         end
+        File.file?(GiternalHelper.checked_out_path('foo/test_branch_file')).should be_true
+        File.read(GiternalHelper.checked_out_path('foo/test_branch_file')).strip.should == 'test_branch_file'
       end
 
     end

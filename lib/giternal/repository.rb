@@ -52,14 +52,16 @@ module Giternal
         update_output do
           git.remote.fetch
           if git.branch.name != @branch
-            git.checkout(@branch)
+            git.lib.checkout(@branch)
           end
           git.remote.merge(@branch)
         end
       else
         update_output do
           @git = Git.clone(@repo_url, @name, :path => @checkout_path.to_s)
-          @git.branch(@branch).checkout
+          unless @branch == "master"
+            @git.lib.checkout("origin/#{@branch}", :new_branch => @branch)
+          end
         end
       end
       true
