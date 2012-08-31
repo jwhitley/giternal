@@ -51,7 +51,7 @@ module Giternal
       if checked_out?
         update_output do
           git.remote.fetch
-          if git.branch.name != @branch
+          if git.current_branch != @branch
             git.lib.checkout(@branch)
           end
           git.remote.merge(@branch)
