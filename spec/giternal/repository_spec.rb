@@ -87,6 +87,7 @@ module Giternal
       it "should update the repo when it's already been checked out" do
         @repository.update
         GiternalHelper.add_content 'foo', 'newfile'
+        GiternalHelper.push_to_bare_repo 'foo'
         @repository.update
         File.file?(GiternalHelper.checked_out_path('foo/newfile')).should be_true
         File.read(GiternalHelper.checked_out_path('foo/newfile')).strip.
@@ -112,10 +113,7 @@ module Giternal
 
         GiternalHelper.create_branch 'foo', 'second_branch'
         GiternalHelper.add_content 'foo', 'branchfile'
-        GiternalHelper.in_repo 'foo' do
-          `git remote add upstream #{GiternalHelper.external_url 'foo'}`
-          `git push upstream`
-        end
+        GiternalHelper.push_to_bare_repo 'foo'
         @repository = Repository.new(GiternalHelper.base_project_dir, "foo",
                                      GiternalHelper.external_url('foo'),
                                      'dependencies', 'second_branch')
@@ -155,6 +153,7 @@ module Giternal
         GiternalHelper.add_content 'foo', 'test_branch_file'
         GiternalHelper.checkout_branch 'foo', 'master'
         GiternalHelper.clone_bare_repo 'foo'
+        GiternalHelper.checkout_branch 'foo', 'test_branch'
         @repository = Repository.new(GiternalHelper.base_project_dir, "foo",
                                      GiternalHelper.external_url('foo'),
                                      'dependencies', 'test_branch')
